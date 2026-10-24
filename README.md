@@ -10,8 +10,7 @@ You need a Mac with Apple silicon, [Homebrew](https://brew.sh) and a Claude plan
 Max). The studio's Claude runs on your own login, never an API key.
 
 ```bash
-brew tap subh05sus/tap
-brew install motionmaxxing
+brew install subh05sus/tap/motionmaxxing
 mm login    # once: sign in to Claude
 mm          # opens the studio at http://localhost:5199
 ```

@@ -1,0 +1,63 @@
+motionmaxxing End User Licence Agreement
+
+Copyright (c) 2026 Subhadip Saha. All rights reserved.
+
+This agreement is between you and Subhadip Saha ("the author"). It covers every version of motionmaxxing that ships
+with this file ("the software"): the studio, its command line (mm), its Claude Code plugin and everything else in the
+package. By installing or using the software you agree to it. If you do not agree, do not install or use it.
+
+Versions released before this agreement, under the MIT License, stay under the MIT License. This agreement does not
+change the rights anyone has in those versions.
+
+1. What you may do
+   The author grants you a personal, non-exclusive, non-transferable, revocable licence to install the software on
+   computers you own or control, and to use it to make videos, for yourself or for others, commercial work included.
+   You may change the plugin files the package leaves readable (skills, agents, scripts, presets) on your own computer
+   for your own use.
+
+2. What you may not do
+   Except where this agreement or the law expressly allows it, you may not:
+   a. copy, share, publish, sell, rent, lend or sublicense the software, or a changed copy of it, or any part of it;
+   b. reverse engineer, decompile or disassemble the parts that ship built or minified (the server, the page, the
+      helper programs), except to the extent the law permits it despite this restriction;
+   c. use the software, or any part of it, to build or train a product that competes with it;
+   d. remove or change any copyright, licence or attribution notice in it.
+
+3. Your videos and your data
+   What you put in (recordings, scripts, pictures) and what you make with the software (cuts, edits, videos) are
+   yours. The author claims no rights in them. The software runs on your computer and keeps your library there; it
+   sends material only to the services you use through it, such as Claude, and to stock sites when you ask for stock.
+
+4. Services and tools of others
+   The software runs on your own Claude account: your use of Claude is under Anthropic's terms, between you and
+   Anthropic. It installs and runs tools made by others (among them FFmpeg, whisper.cpp, Remotion, HyperFrames,
+   Python packages and models), each under its own licence. Remotion, for one, needs a company licence from its
+   makers for companies of more than three people. Stock media keeps the licence of its source. You are responsible
+   for following those terms.
+
+5. Third-party code in the package
+   Parts of the package are made by others and come under their own licences, listed in THIRD_PARTY_NOTICES.md,
+   THIRD_PARTY_LICENSES.txt and the licenses/ folder, and in the licence files next to them. Those licences, the MIT
+   License among them, apply to those parts in place of this agreement, and nothing here limits the rights they give.
+
+6. Updates
+   The author may release updates. An update may come with a changed version of this agreement, which then applies to
+   that update.
+
+7. Ending
+   This licence ends on its own if you break this agreement. When it ends, stop using the software and delete it.
+   Sections 3, 8 and 9 keep applying after it ends.
+
+8. No warranty
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+   WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+
+9. Limitation of liability
+   TO THE EXTENT THE LAW ALLOWS, IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+   USE OF OR OTHER DEALINGS IN THE SOFTWARE, INCLUDING LOST DATA, LOST PROFITS OR LOST WORK.
+
+10. Law
+   This agreement is governed by the laws of India. If a part of it cannot be enforced, the rest still applies.
+
+Questions: https://github.com/subh05sus/motionmaxxing-releases/issues

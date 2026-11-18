@@ -45,8 +45,8 @@ jobs:
             Copy-Item src\LICENSE "$d\LICENSE.txt"
             & "$d\whisper-cli.exe" --help | Select-Object -First 2
             # the CPU build must start on a PC with no GPU driver at all: no vulkan-1.dll among what it loads
-            $deps = & dumpbin /dependents "$d\whisper-cli.exe" 2>$null
-            $hasVk = ($deps | Select-String -SimpleMatch 'vulkan-1.dll') -ne $null
+            $bytes = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes("$d\whisper-cli.exe"))
+            $hasVk = $bytes.IndexOf('vulkan-1.dll', [StringComparison]::OrdinalIgnoreCase) -ge 0
             if (($kind -eq 'cpu') -eq $hasVk) { throw "whisper-$kind links vulkan-1.dll: $hasVk" }
             Compress-Archive -Path "$d\*" -DestinationPath "out\whisper-$($env:WHISPER)-win-x64-$kind.zip"
           }

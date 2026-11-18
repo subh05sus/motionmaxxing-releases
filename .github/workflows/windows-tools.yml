@@ -1,0 +1,80 @@
+# The pinned tools motionmaxxing's Windows installer brings, mirrored here once per set so an install never breaks
+# when an upstream build disappears. whisper.cpp is built here (it publishes no Windows binaries): Vulkan (NVIDIA, AMD,
+# Intel GPUs) and CPU. Each asset gets a .sha256, and tools.json lists them; the installer pins the hashes itself.
+name: Windows tools
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "the release to make (tools-win-N)"
+        default: "tools-win-1"
+permissions:
+  contents: write
+env:
+  NODE: "24.22.3"
+  PYTHON: "cpython-3.12.16+20261110-x86_64-pc-windows-msvc-install_only.tar.gz"
+  PYTHON_TAG: "20261110"
+  MINGIT: "2.56.1"
+  MINGIT_TAG: "v2.56.1.windows.1"
+  WHISPER: "v1.9.5"
+  FFMPEG: "ffmpeg-n8.1-latest-win64-gpl-8.1.zip"
+jobs:
+  tools:
+    runs-on: windows-latest
+    steps:
+      - name: Vulkan SDK (to build whisper.cpp's Vulkan backend)
+        shell: pwsh
+        run: |
+          Invoke-WebRequest https://sdk.lunarg.com/sdk/download/latest/windows/vulkan-sdk.exe -OutFile vk.exe
+          Start-Process .\vk.exe -ArgumentList '--accept-licenses','--default-answer','--confirm-command','install' -Wait
+          $sdk = Get-ChildItem C:\VulkanSDK | Sort-Object Name -Descending | Select-Object -First 1
+          "VULKAN_SDK=$($sdk.FullName)" | Out-File $env:GITHUB_ENV -Append
+      - name: whisper.cpp (Vulkan and CPU)
+        shell: pwsh
+        run: |
+          git clone --depth 1 --branch $env:WHISPER https://github.com/ggml-org/whisper.cpp src
+          New-Item -ItemType Directory out | Out-Null
+          foreach ($kind in 'vulkan','cpu') {
+            $vk = if ($kind -eq 'vulkan') { 'ON' } else { 'OFF' }
+            cmake -S src -B "b-$kind" -DGGML_VULKAN=$vk -DGGML_NATIVE=OFF -DGGML_AVX2=ON -DBUILD_SHARED_LIBS=OFF `
+              -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DWHISPER_BUILD_TESTS=OFF -DWHISPER_SDL2=OFF
+            cmake --build "b-$kind" --config Release -j 4 --target whisper-cli whisper-server
+            $d = "whisper-$kind"; New-Item -ItemType Directory $d | Out-Null
+            Copy-Item "b-$kind\bin\Release\*" $d
+            Copy-Item src\LICENSE "$d\LICENSE.txt"
+            & "$d\whisper-cli.exe" --help | Select-Object -First 2
+            Compress-Archive -Path "$d\*" -DestinationPath "out\whisper-$($env:WHISPER)-win-x64-$kind.zip"
+          }
+      - name: Node, Python, FFmpeg, MinGit (the pinned upstream builds)
+        shell: pwsh
+        run: |
+          $ProgressPreference = 'SilentlyContinue'
+          Invoke-WebRequest "https://nodejs.org/dist/v$env:NODE/node-v$env:NODE-win-x64.zip" -OutFile "out\node-v$env:NODE-win-x64.zip"
+          Invoke-WebRequest "https://github.com/astral-sh/python-build-standalone/releases/download/$env:PYTHON_TAG/$([uri]::EscapeDataString($env:PYTHON))" -OutFile "out\$($env:PYTHON -replace '\+','-')"
+          Invoke-WebRequest "https://github.com/git-for-windows/git/releases/download/$env:MINGIT_TAG/MinGit-$env:MINGIT-64-bit.zip" -OutFile "out\MinGit-$env:MINGIT-64-bit.zip"
+          Invoke-WebRequest "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/$env:FFMPEG" -OutFile "out\$env:FFMPEG"
+      - name: Hashes and tools.json
+        shell: pwsh
+        run: |
+          $list = foreach ($f in Get-ChildItem out) {
+            $h = (Get-FileHash $f.FullName -Algorithm SHA256).Hash.ToLower()
+            "$h  $($f.Name)" | Out-File "$($f.FullName).sha256" -Encoding ascii -NoNewline
+            [ordered]@{ name = $f.Name; sha256 = $h; size = $f.Length }
+          }
+          $list | ConvertTo-Json | Out-File out\tools.json -Encoding utf8
+          Get-Content out\tools.json
+      - name: Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $notes = @"
+          The pinned tools motionmaxxing's Windows installer downloads (x64). Each comes with a .sha256; tools.json lists them.
+
+          - Node.js $env:NODE (MIT): https://nodejs.org/dist/v$env:NODE/
+          - Python 3.12, python-build-standalone $env:PYTHON_TAG (PSF and bundled licences): https://github.com/astral-sh/python-build-standalone/releases/tag/$env:PYTHON_TAG
+          - FFmpeg 8.1 GPL build by BtbN (GPL-3.0; source: https://github.com/BtbN/FFmpeg-Builds and https://git.ffmpeg.org/ffmpeg.git, tag n8.1)
+          - MinGit $env:MINGIT (GPL-2.0; source: https://github.com/git-for-windows/git/tree/$env:MINGIT_TAG)
+          - whisper.cpp $env:WHISPER (MIT), built here from https://github.com/ggml-org/whisper.cpp/tree/$env:WHISPER : Vulkan and CPU, static runtime
+          "@
+          gh release create "${{ inputs.tag }}" (Get-ChildItem out | ForEach-Object FullName) --repo $env:GITHUB_REPOSITORY --title "Windows tools (${{ inputs.tag }})" --notes $notes --latest=false

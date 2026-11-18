@@ -40,11 +40,12 @@ jobs:
           }).listen(8080);
           '@
           Set-Content "$env:RUNNER_TEMP\site.js" $js
-          Start-Process node -ArgumentList "$env:RUNNER_TEMP\site.js" -RedirectStandardOutput "$env:RUNNER_TEMP\site.log"
-          Start-Sleep 2
       - name: Run it the way the line does (irm | iex), in Windows PowerShell 5.1
         shell: powershell
         run: |
+          # the stand-in runs in this step: a process a step starts ends with it
+          Start-Process node -ArgumentList "$env:RUNNER_TEMP\site.js" -RedirectStandardOutput "$env:RUNNER_TEMP\site.log"
+          Start-Sleep 2
           $out = Get-Content -Raw "$env:RUNNER_TEMP\install.ps1" | Invoke-Expression *>&1 | Out-String
           Write-Host $out
           # without a Windows package on the stand-in it stops at the package, after the tools

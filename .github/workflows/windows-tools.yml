@@ -36,13 +36,18 @@ jobs:
           New-Item -ItemType Directory out | Out-Null
           foreach ($kind in 'vulkan','cpu') {
             $vk = if ($kind -eq 'vulkan') { 'ON' } else { 'OFF' }
-            cmake -S src -B "b-$kind" -DGGML_VULKAN=$vk -DGGML_NATIVE=OFF -DGGML_AVX2=ON -DBUILD_SHARED_LIBS=OFF `
+            # quoted: unquoted, PowerShell passes "$vk" itself and CMake reads any such string as ON
+            cmake -S src -B "b-$kind" "-DGGML_VULKAN=$vk" -DGGML_NATIVE=OFF -DGGML_AVX2=ON -DBUILD_SHARED_LIBS=OFF `
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DWHISPER_BUILD_TESTS=OFF -DWHISPER_SDL2=OFF
             cmake --build "b-$kind" --config Release -j 4 --target whisper-cli whisper-server
             $d = "whisper-$kind"; New-Item -ItemType Directory $d | Out-Null
             Copy-Item "b-$kind\bin\Release\*" $d
             Copy-Item src\LICENSE "$d\LICENSE.txt"
             & "$d\whisper-cli.exe" --help | Select-Object -First 2
+            # the CPU build must start on a PC with no GPU driver at all: no vulkan-1.dll among what it loads
+            $deps = & dumpbin /dependents "$d\whisper-cli.exe" 2>$null
+            $hasVk = ($deps | Select-String -SimpleMatch 'vulkan-1.dll') -ne $null
+            if (($kind -eq 'cpu') -eq $hasVk) { throw "whisper-$kind links vulkan-1.dll: $hasVk" }
             Compress-Archive -Path "$d\*" -DestinationPath "out\whisper-$($env:WHISPER)-win-x64-$kind.zip"
           }
       - name: Node, Python, FFmpeg, MinGit (the pinned upstream builds)
